@@ -4,7 +4,7 @@ from keyboards.user_keyboards import get_gir_keyboard, system_buttons
 from file_managment.fail_moving_manager import get_dt_name, move_to_folders_on_disk, path_list, set_correct_path
 
 from aiogram import F, types, Router
-from aiogram.filters import Command, Filter
+from aiogram.filters import Command, BaseFilter
 from aiogram.exceptions import TelegramBadRequest
 
 import io
@@ -22,21 +22,14 @@ def buttons() -> list:
 async def start_message(message: types.message):
     path_list.clear()
     await message.answer(
-        text='''Бот для сохранения пересылаемых изображений в облако. Как в папке выбираешь\
-        директорию в которую желаешь поместить файл и отправляешь репост или фото''',
-        reply_markup=get_gir_keyboard(buttons(), path_list).as_markup(resize_keyboard=True)
-    )
-    print('buttons: ', buttons())
-    print('*' * 8)
-    print('path_list: ', path_list)
-    print('*' * 8)
-    print(set_correct_path(path_list))
+        text='Бот для сохранения пересылаемых изображений в облако. Как в папке выбираешь директорию в которую желаешь поместить файл и отправляешь репост или фото')
+    await message.answer('Выбери директорию:',
+                         reply_markup=get_gir_keyboard(buttons(), path_list).as_markup(resize_keyboard=True)
+                         )
 
 
-class FolderFilter(Filter):
+class FolderFilter(BaseFilter):
     """Хендлер кнопок для предстоящего перехода по директориям"""
-    def __init__(self, folders: list) -> None:
-        self.folders = folders
 
     async def __call__(self, message: types.Message) -> bool:
         if message.text in buttons():
@@ -45,25 +38,28 @@ class FolderFilter(Filter):
             return False
 
 
- #TOODO: Хендлер не видит новые значения попадаемые в обрабатываемый список
-@router.message(FolderFilter(buttons()))
-async def move_to_dir(message: types.Message):
+# TOODO: Хендлер не видит новые значения попадаемые в обрабатываемый список
+@router.message(F.text, FolderFilter())
+async def move_to_dir(message: types.Message, bot: bot):
     """Смена клавиатуры при переходе по директориям"""
+    await message.answer('Идет запрос к директориям диска...')
     move_to_folders_on_disk(message.text)
-    await message.answer(message.text, reply_markup=get_gir_keyboard(buttons(), path_list).as_markup(resize_keyboard=True))
-    buttons_list = buttons()
-    print('buttons: ', buttons())
-    print('*' * 8)
-    print('path_list: ', path_list)
-    print('*' * 8)
-    print(set_correct_path(path_list))
+    await message.answer(set_correct_path(path_list) if len(path_list) else 'Корневая директория/',
+                         reply_markup=get_gir_keyboard(buttons(), path_list).as_markup(resize_keyboard=True))
+    mes_id = [message.message_id + 1, message.message_id, message.message_id - 1]
+    try:
+        for i in mes_id:
+            await bot.delete_message(message.from_user.id, i)
+    except TelegramBadRequest as ex:
+        if ex.message == 'Bad Request: message to delete not found':
+            print('Список id пуст')
 
 
 @router.message(F.photo)  # Хендлер на присланные фотографии
 async def download_photo(message: types.Message, bot: bot):
     file_name = get_dt_name()
     buffer = io.BytesIO()  # Объект буфера
-
+    await bot.send_chat_action(message.from_user.id, 'upload_photo', message_thread_id=message.message_id)
     await bot.download(message.photo[-1], destination=buffer)
 
     upload_img(io.BytesIO(buffer.read()), set_correct_path(path_list) + file_name)
@@ -79,5 +75,3 @@ async def cmd_clear(message: types.Message, bot: bot):
     except TelegramBadRequest as ex:
         if ex.message == 'Bad Request: message to delete not found':
             print('Все сообщения удалены')
-
-

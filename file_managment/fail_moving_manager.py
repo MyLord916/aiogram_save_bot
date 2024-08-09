@@ -20,7 +20,7 @@ subsequence = 1  # Последнее значение в нейминге фа�
 
 
 def set_correct_path(path) -> str:
-    return '/'.join(path)
+    return '/'.join(path) + '/'
 
 
 def move_to_folders_on_disk(folder) -> None:

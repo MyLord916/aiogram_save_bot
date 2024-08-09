@@ -10,7 +10,7 @@ load_dotenv(find_dotenv())
 y = yadisk.YaDisk(token=os.getenv('YA_TOKEN'))
 
 
-def token_valid() -> bool:
+def token_valid():
     return y.check_token()
 
 
