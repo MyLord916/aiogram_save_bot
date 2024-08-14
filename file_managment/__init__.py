@@ -1,2 +1,2 @@
 from file_managment import ya_file_manager
-from file_managment import fail_moving_manager
+from file_managment import file_moving_manager

@@ -1,13 +1,13 @@
 from create_bot import bot
 from file_managment.ya_file_manager import upload_img, get_directories_in
 from keyboards.user_keyboards import get_gir_keyboard, system_buttons
-from file_managment.fail_moving_manager import get_dt_name, move_to_folders_on_disk, path_list, set_correct_path
+from file_managment.file_moving_manager import get_dt_name, move_to_folders_on_disk, path_list, set_correct_path
 
 from aiogram import F, types, Router
 from aiogram.filters import Command, BaseFilter
 from aiogram.exceptions import TelegramBadRequest
 
-import io
+import io, asyncio
 
 router = Router()
 
@@ -62,7 +62,7 @@ async def download_photo(message: types.Message, bot: bot):
     await bot.send_chat_action(message.from_user.id, 'upload_photo', message_thread_id=message.message_id)
     await bot.download(message.photo[-1], destination=buffer)
 
-    upload_img(io.BytesIO(buffer.read()), set_correct_path(path_list) + file_name)
+    await upload_img(io.BytesIO(buffer.read()), set_correct_path(path_list) + file_name)
     print(f'file processing: {file_name}')  # Проверочка между делом
     await bot.delete_message(message.from_user.id, message.message_id)
 
