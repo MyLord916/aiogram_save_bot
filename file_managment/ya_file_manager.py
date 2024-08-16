@@ -2,7 +2,7 @@ import os
 
 import yadisk
 
-from file_managment.file_moving_manager import set_correct_path
+from utils.utils import set_correct_path
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -10,6 +10,8 @@ load_dotenv(find_dotenv())
 
 
 y = yadisk.YaDisk(token=os.getenv('YA_TOKEN'))
+
+path_list = []  # Список из элементов которого будет сформирован корректный путь к директориям диска
 
 
 def token_valid():
