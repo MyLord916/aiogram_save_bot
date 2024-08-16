@@ -6,7 +6,7 @@ from aiogram.exceptions import TelegramBadRequest
 
 from create_bot import bot
 from file_managment.ya_file_manager import upload_img, get_directories_in
-from file_managment.fail_moving_manager import get_dt_name, move_to_folders_on_disk, path_list, set_correct_path
+from file_managment.file_moving_manager import get_dt_name, move_to_folders_on_disk, path_list, set_correct_path
 from keyboards.user_keyboards import get_gir_keyboard, system_buttons
 
 

@@ -2,7 +2,7 @@ import os
 
 import yadisk
 
-from file_managment.fail_moving_manager import set_correct_path
+from file_managment.file_moving_manager import set_correct_path
 
 from dotenv import load_dotenv, find_dotenv
 
