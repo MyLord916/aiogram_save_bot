@@ -1,12 +1,14 @@
+import os
+
 import yadisk
 
 from file_managment.fail_moving_manager import set_correct_path
 
-import os
 from dotenv import load_dotenv, find_dotenv
 
-
 load_dotenv(find_dotenv())
+
+
 y = yadisk.YaDisk(token=os.getenv('YA_TOKEN'))
 
 
