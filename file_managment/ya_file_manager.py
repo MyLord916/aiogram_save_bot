@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 import yadisk
 
@@ -9,7 +10,17 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 
-y = yadisk.YaDisk(token=os.getenv('YA_TOKEN'))
+TOKEN = os.getenv('YA_TOKEN')
+
+
+class YaDiskClient:
+    TOKEN = os.getenv('YA_TOKEN')
+    client = yadisk.AsyncClient(token=TOKEN, session='aiohttp')
+
+    async def token_valid(self):
+        await self.client.check_token()
+        await self.client.close()
+
 
 path_list = []  # Список из элементов которого будет сформирован корректный путь к директориям диска
 
@@ -38,3 +49,14 @@ def get_directories_in(path) -> list:
         return directories
     except yadisk.exceptions.PathNotFoundError as ex:
         return ex
+
+
+async def main():
+    async with yadisk.AsyncClient(token=os.getenv('YA_TOKEN'), session='aiohttp') as client:
+        # print(await client.check_token())
+        # print(await client.get_disk_info())
+        print(await client.listdir(''))
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
