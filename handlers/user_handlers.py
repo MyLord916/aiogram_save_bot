@@ -1,13 +1,13 @@
 import io
 
 from aiogram import F, types, Router
-from aiogram.filters import Command, BaseFilter
+from aiogram.filters import Command
 from aiogram.exceptions import TelegramBadRequest
 
 from create_bot import bot
 from file_managment.ya_file_manager import YaDisk, path_list
-from keyboards.user_keyboards import get_gir_keyboard, system_buttons
-from utils.utils import move_to_folders_on_disk
+from keyboards.user_keyboards import get_gir_keyboard
+from utils.utils import move_to_folders_on_disk, FolderFilter
 
 
 router = Router()
@@ -19,16 +19,6 @@ async def start_message(message: types.message):
     await message.answer(
         text='Бот для сохранения пересылаемых изображений в облако. Как в папке выбираешь директорию в которую желаешь поместить файл и отправляешь репост или фото')
     await message.answer('Выбери директорию:', reply_markup=await get_gir_keyboard())
-
-
-class FolderFilter(BaseFilter):
-    """Хендлер кнопок для предстоящего перехода по директориям"""
-    async def __call__(self, message: types.Message) -> bool:
-        result_handler_list = await YaDisk.get_directories_in(path_list) + list(system_buttons.values())
-        if message.text in result_handler_list:
-            return True
-        else:
-            return False
 
 
 @router.message(F.text, FolderFilter())
