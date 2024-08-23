@@ -5,10 +5,9 @@ from aiogram.filters import Command, BaseFilter
 from aiogram.exceptions import TelegramBadRequest
 
 from create_bot import bot
-from file_managment.ya_file_manager import YaDiskClient, path_list
-from file_managment.file_moving_manager import move_to_folders_on_disk
+from file_managment.ya_file_manager import YaDisk, path_list
 from keyboards.user_keyboards import get_gir_keyboard, system_buttons
-from utils.utils import get_dt_name, set_correct_path
+from utils.utils import get_dt_name, move_to_folders_on_disk
 
 
 router = Router()
@@ -16,7 +15,7 @@ router = Router()
 
 async def buttons() -> list:
     """Список кнопок на которые должен реагировать хендлер смены директории"""
-    but = list(system_buttons.values()) + await YaDiskClient.get_directories_in(path_list)
+    but = list(system_buttons.values()) + await YaDisk.get_directories_in(path_list)
     print(but)
     return but
 
@@ -45,7 +44,7 @@ async def move_to_dir(message: types.Message, bot: bot):
     """Смена клавиатуры при переходе по директориям"""
     await message.answer('Идет запрос к директориям диска...')
     move_to_folders_on_disk(message.text)
-    await message.answer(YaDiskClient.set_correct_path(path_list) if len(path_list) else 'Корневая директория/',
+    await message.answer(YaDisk.set_correct_path(path_list) if len(path_list) else 'Корневая директория/',
                          reply_markup=await get_gir_keyboard())
     mes_id_list = [message.message_id + 1, message.message_id, message.message_id - 1]
     try:
@@ -54,8 +53,6 @@ async def move_to_dir(message: types.Message, bot: bot):
     except TelegramBadRequest as ex:
         if ex.message == 'Bad Request: message to delete not found':
             print('Список id пуст')
-    print(path_list)
-    print(set_correct_path(path_list))
 
 
 @router.message(F.photo)  # Хендлер на присланные фотографии
@@ -65,7 +62,7 @@ async def download_photo(message: types.Message, bot: bot):
     await bot.send_chat_action(message.from_user.id, 'upload_photo', message_thread_id=message.message_id)
     await bot.download(message.photo[-1], destination=buffer)
 
-    await YaDiskClient.upload_img(io.BytesIO(buffer.read()), YaDiskClient.set_correct_path(path_list) + file_name)
+    await YaDisk.upload_img(io.BytesIO(buffer.read()), YaDisk.set_correct_path(path_list) + file_name)
     print(f'file processing: {file_name}')  # Проверочка между делом
     await bot.delete_message(message.from_user.id, message.message_id)
 
