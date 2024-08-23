@@ -13,7 +13,17 @@ TOKEN = os.getenv('YA_TOKEN')
 
 path_list = []  # Список из элементов которого будет сформирован корректный путь к директориям диска
 
-subsequence = 1  # Последнее значение в нейминге файлов для уникальности имени
+
+def infinite_current_gen():
+    current = 0
+    while True:
+        if current > 99:
+            current = 0
+        yield current
+        current += 1
+
+
+infinite_current = infinite_current_gen()
 
 
 class YaDisk:
@@ -26,13 +36,8 @@ class YaDisk:
     @staticmethod
     def get_dt_name() -> str:
         """Функция задает имя файла в формате времени год/месяц/день/минуты/(последовательный номер уникальности)"""
-        global subsequence
         dt = datetime.now()
-        dt_name = dt.strftime('%Y%m%d%H%M') + f'({str(subsequence)})' + '.jpg'
-        if subsequence < 99:
-            subsequence += 1
-        else:
-            subsequence = 1
+        dt_name = dt.strftime('%Y%m%d%H%M') + f'({str(next(infinite_current))})' + '.jpg'
         return dt_name
 
     @classmethod
