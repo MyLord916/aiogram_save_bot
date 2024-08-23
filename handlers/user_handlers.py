@@ -7,17 +7,10 @@ from aiogram.exceptions import TelegramBadRequest
 from create_bot import bot
 from file_managment.ya_file_manager import YaDisk, path_list
 from keyboards.user_keyboards import get_gir_keyboard, system_buttons
-from utils.utils import get_dt_name, move_to_folders_on_disk
+from utils.utils import move_to_folders_on_disk
 
 
 router = Router()
-
-
-async def buttons() -> list:
-    """Список кнопок на которые должен реагировать хендлер смены директории"""
-    but = list(system_buttons.values()) + await YaDisk.get_directories_in(path_list)
-    print(but)
-    return but
 
 
 @router.message(Command('start'))
@@ -30,15 +23,14 @@ async def start_message(message: types.message):
 
 class FolderFilter(BaseFilter):
     """Хендлер кнопок для предстоящего перехода по директориям"""
-
     async def __call__(self, message: types.Message) -> bool:
-        if message.text in await buttons():
+        result_handler_list = await YaDisk.get_directories_in(path_list) + list(system_buttons.values())
+        if message.text in result_handler_list:
             return True
         else:
             return False
 
 
-# TOODO: Хендлер не видит новые значения попадаемые в обрабатываемый список
 @router.message(F.text, FolderFilter())
 async def move_to_dir(message: types.Message, bot: bot):
     """Смена клавиатуры при переходе по директориям"""
@@ -57,13 +49,11 @@ async def move_to_dir(message: types.Message, bot: bot):
 
 @router.message(F.photo)  # Хендлер на присланные фотографии
 async def download_photo(message: types.Message, bot: bot):
-    file_name = get_dt_name()
     buffer = io.BytesIO()  # Объект буфера
     await bot.send_chat_action(message.from_user.id, 'upload_photo', message_thread_id=message.message_id)
     await bot.download(message.photo[-1], destination=buffer)
 
-    await YaDisk.upload_img(io.BytesIO(buffer.read()), YaDisk.set_correct_path(path_list) + file_name)
-    print(f'file processing: {file_name}')  # Проверочка между делом
+    await YaDisk.upload_img(io.BytesIO(buffer.read()))
     await bot.delete_message(message.from_user.id, message.message_id)
 
 
