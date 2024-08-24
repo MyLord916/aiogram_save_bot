@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 from create_bot import dp, bot
-
 from handlers.user_handlers import router
 
 logging.basicConfig(level=logging.INFO)
